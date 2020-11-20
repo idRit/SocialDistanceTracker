@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.notifications.NotificationsFragment">
+
+
+    <ImageView
+        android:id="@+id/qrimageView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="128dp"
+        app:layout_constraintBottom_toTopOf="@+id/openICList"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        tools:src="@tools:sample/backgrounds/scenic" />
+
+    <Button
+        android:id="@+id/openScanner"
+        android:layout_width="0dp"
+        android:layout_height="53dp"
+        android:layout_marginStart="29dp"
+        android:layout_marginEnd="20dp"
+        android:text="Add to inner circle"
+        app:layout_constraintBottom_toBottomOf="@+id/openICList"
+        app:layout_constraintEnd_toStartOf="@+id/openICList"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/openICList"
+        android:layout_width="171dp"
+        android:layout_height="53dp"
+        android:layout_marginEnd="22dp"
+        android:layout_marginBottom="64dp"
+        android:text="Inner Circle List"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/openScanner"
+        app:layout_constraintTop_toBottomOf="@+id/qrimageView" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="111dp"
+        android:layout_marginBottom="23dp"
+        android:text="Scan this QR code to add\n  member to inner Circle!"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/qrimageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.513"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
