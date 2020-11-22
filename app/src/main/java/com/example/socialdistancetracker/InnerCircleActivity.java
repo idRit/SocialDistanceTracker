@@ -165,6 +165,10 @@ public class InnerCircleActivity extends AppCompatActivity {
                             if (obj.getInt("success") == 1) {
                                 JSONArray arr =  obj.getJSONArray("listOfEmails");
                                 List<String> list = new ArrayList<String>();
+                                if (arr.length() == 0) {
+                                    Toast.makeText(getApplicationContext(), "No one added!", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                }
                                 for(int i = 0; i < arr.length(); i++){
                                     list.add(arr.getString(i));
                                 }

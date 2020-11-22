@@ -44,6 +44,7 @@ public class SignupActivity extends AppCompatActivity {
 
         Button signup = findViewById(R.id.signup);
         textView = findViewById(R.id.state_signup);
+        textView.setText("Password should have:\n1. At least 1 special character\n2. At least 1 number\n3. At least 1 capital character\n4. 8 characters long");
 
         EditText email = findViewById(R.id.editTextTextEmailAddressSignup);
         EditText password = findViewById(R.id.ETTextPassword);
@@ -55,9 +56,9 @@ public class SignupActivity extends AppCompatActivity {
                 String emailStr = email.getText().toString();
                 String passStr = password.getText().toString();
                 String passStr2 = passwordRE.getText().toString();
-//                if (validatePassword(passStr) && validatePassword(passStr2) && isValidEmail(emailStr) && passStr.equals(passStr2))
+                if (validatePassword(passStr) && validatePassword(passStr2) && isValidEmail(emailStr) && passStr.equals(passStr2))
                     signup(emailStr, passStr);
-//                else textView.setText("Error: Make sure passwords match and email is correct!");
+                else textView.setText("Error: Make sure passwords match and email is correct!");
             }
         });
     }
@@ -87,11 +88,9 @@ public class SignupActivity extends AppCompatActivity {
 
         StringRequest loginRequest = prepareSignupRequest(requestBody, queue);
         queue.add(loginRequest);
-
-        queue.add(prepareLoginRequest("http://3.22.130.81:3300/api/login", requestBody, queue));
     }
 
-    StringRequest prepareSignupRequest(String requestBody, RequestQueue queue) {
+    StringRequest prepareSignupRequest(String requestBody, RequestQueue queue) {queue.add(prepareLoginRequest("http://3.22.130.81:3300/api/login", requestBody, queue));
         StringRequest loginRequest = new StringRequest(Request.Method.POST, "http://3.22.130.81:3300/api/signup",
                 new Response.Listener<String>() {
                     @Override
@@ -100,8 +99,10 @@ public class SignupActivity extends AppCompatActivity {
                         try {
                             JSONObject obj = new JSONObject(response);
                             Boolean success = Boolean.parseBoolean(obj.getString("success"));
-                            if (success)
+                            if (success) {
                                 textView.setText("Signed up, now logging in!");
+                                queue.add(prepareLoginRequest("http://3.22.130.81:3300/api/login", requestBody, queue));
+                            }
                             else textView.setText("Something Happened!");
                         } catch (JSONException e) {
                             e.printStackTrace();

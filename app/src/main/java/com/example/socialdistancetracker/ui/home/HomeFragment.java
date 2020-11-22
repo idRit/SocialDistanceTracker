@@ -89,7 +89,7 @@ public class HomeFragment extends Fragment {
                     sharedPref.edit().putBoolean("backgroundService", false).apply();
                     //disable bluetooth
                     tryChangingName("Nokia 6.1 Plus", true);
-                    Toast.makeText(getContext(), "Bluetooth Turned Off!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Service Deactivated", Toast.LENGTH_SHORT).show();
                     //stop the service
                     Intent serviceIntent = new Intent(getContext(), LongPollService.class);
                     getActivity().stopService(serviceIntent);
@@ -102,6 +102,14 @@ public class HomeFragment extends Fragment {
                     if (!bluetoothAdapter.isEnabled()) {
                         Intent bluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                         startActivityForResult(bluetoothIntent, 11);
+                    } else {
+                        String sOldName = bluetoothAdapter.getName();
+                        sharedPref.edit().putString("blName", sOldName).apply();
+                        tryChangingName(sharedPref.getString("id", "null"), false);
+
+                        //start the service
+                        Intent serviceIntent = new Intent(getContext(), LongPollService.class);
+                        getActivity().startService(serviceIntent);
                     }
                 }
             }
