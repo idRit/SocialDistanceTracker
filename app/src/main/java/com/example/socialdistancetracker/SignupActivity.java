@@ -1,7 +1,9 @@
 package com.example.socialdistancetracker;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -37,6 +39,8 @@ import static com.example.socialdistancetracker.LoginActivity.isValidEmail;
 public class SignupActivity extends AppCompatActivity {
     TextView textView = null;
 
+    private String otp = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,9 +60,11 @@ public class SignupActivity extends AppCompatActivity {
                 String emailStr = email.getText().toString();
                 String passStr = password.getText().toString();
                 String passStr2 = passwordRE.getText().toString();
-                if (validatePassword(passStr) && validatePassword(passStr2) && isValidEmail(emailStr) && passStr.equals(passStr2))
+//                if (validatePassword(passStr) && validatePassword(passStr2) && isValidEmail(emailStr) && passStr.equals(passStr2)) {
                     signup(emailStr, passStr);
-                else textView.setText("Error: Make sure passwords match and email is correct!");
+//                }
+//                else
+//                    textView.setText("Error: Make sure passwords match and email is correct!");
             }
         });
     }
@@ -87,7 +93,23 @@ public class SignupActivity extends AppCompatActivity {
         final String requestBody = jsonBody.toString();
 
         StringRequest loginRequest = prepareSignupRequest(requestBody, queue);
-        queue.add(loginRequest);
+
+        prepareOtpGeneration(queue, username, "");
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("OTP verification");
+
+        final EditText otpInput = new EditText(this);
+        builder.setView(otpInput);
+
+        builder.setPositiveButton("Send", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                prepareOtpVerification(queue, username, otpInput.getText().toString(), loginRequest);
+            }
+        });
+
+        builder.show();
     }
 
     StringRequest prepareSignupRequest(String requestBody, RequestQueue queue) {queue.add(prepareLoginRequest("http://3.22.130.81:3300/api/login", requestBody, queue));
@@ -156,7 +178,7 @@ public class SignupActivity extends AppCompatActivity {
                                 saveDataAndChangeScreen(obj.getString("token"), obj.getString("id"), obj.getString("qr"),queue);
                             }
                             else {
-                                textView.setText("Error: User not foud! Please sign-up first!");
+                                textView.setText("Please wait!");
 //                                queue.add(prepareSignupRequest(requestBody, queue));
 //                                newUser = true;
                             }
@@ -199,6 +221,8 @@ public class SignupActivity extends AppCompatActivity {
 
         return loginRequest;
     }
+
+
 
     void prepareActivation(RequestQueue queue, String id, String token) {
         StringRequest loginRequest = new StringRequest(Request.Method.GET, "http://3.22.130.81:3300/api/activateProfile/" + id,
@@ -252,6 +276,128 @@ public class SignupActivity extends AppCompatActivity {
         };
 
         queue.add(loginRequest);
+    }
+
+    void prepareOtpGeneration(RequestQueue queue, String email, String token) {
+        StringRequest loginRequest = new StringRequest(Request.Method.POST, "http://3.22.130.81:3300/api/generate-otp/",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        try {
+                            JSONObject obj = new JSONObject(response);
+                            boolean success = Boolean.parseBoolean(obj.getString("success"));
+                            if (success == true) {
+                                Log.d("OTP", "Sent");
+                            }
+                            else Log.d("OTP", "not done");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                textView.setText("That didn't work!");
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+                    JSONObject jsonBody = new JSONObject();
+                    jsonBody.put("email", email);
+
+                    String requestBody = jsonBody.toString();
+
+                    return requestBody == null ? null : requestBody.getBytes("utf-8");
+                } catch (UnsupportedEncodingException uee) {
+//                    VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8");
+                    return null;
+                } catch (JSONException jsonException) {
+                    return null;
+                }
+            }
+
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                String responseString = "";
+                if (response != null) {
+                    responseString = String.valueOf(response.statusCode);
+                    // can get more details such as response.headers
+                    return super.parseNetworkResponse(response);
+                }
+                return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
+            }
+        };
+
+        queue.add(loginRequest);
+    }
+
+    void prepareOtpVerification(RequestQueue queue, String email, String otp, StringRequest loginRequest) {
+        StringRequest verificationRequest = new StringRequest(Request.Method.POST, "http://3.22.130.81:3300/api/verify-otp/",
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        try {
+                            JSONObject obj = new JSONObject(response);
+                            boolean success = Boolean.parseBoolean(obj.getString("success"));
+                            if (success == true) {
+                                queue.add(loginRequest);
+                                Log.d("OTP", "Sent");
+                            }
+                            else textView.setText("Please restart the application and restart the sign-up process!");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                textView.setText("That didn't work!");
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+                    JSONObject jsonBody = new JSONObject();
+                    jsonBody.put("email", email);
+                    jsonBody.put("otp", otp);
+
+                    String requestBody = jsonBody.toString();
+
+                    return requestBody == null ? null : requestBody.getBytes("utf-8");
+                } catch (UnsupportedEncodingException uee) {
+//                    VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8");
+                    return null;
+                } catch (JSONException jsonException) {
+                    return null;
+                }
+            }
+
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                String responseString = "";
+                if (response != null) {
+                    responseString = String.valueOf(response.statusCode);
+                    // can get more details such as response.headers
+                    return super.parseNetworkResponse(response);
+                }
+                return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
+            }
+        };
+
+        queue.add(verificationRequest);
     }
 
     void saveDataAndChangeScreen(String token, String id, String qr, RequestQueue queue) {
